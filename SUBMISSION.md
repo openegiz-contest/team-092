@@ -67,7 +67,12 @@ Implementation:
 | Ventilation response | Increases simulated airflow when risk rises | Observe the Airflow panel | Airflow changes automatically with the simulation |
 | Changing mine conditions | The simulator continuously produces different environmental conditions | Observe the live Grafana panels | Wait for the next simulated values |
 
-These are automatically simulated scenarios. The prototype does not provide a verified manual what-if control on the OpenEgiz Stand.
+The interactive mine map at http://localhost:8082 provides three manual What-if controls:
+- NORMAL: returns to automatic simulation.
+- METHANE_LEAK: raises simulated methane concentration to 1.5–1.8%.
+- VENTILATION_FAILURE: turns the simulated fan OFF and reduces airflow to zero.
+
+The buttons publish commands through MQTT to the simulator. The resulting telemetry updates the map and flows through the digital twin monitoring pipeline.
 
 ## What works and what does not
 
@@ -77,14 +82,15 @@ Verified:
 - The Python simulator publishes synthetic measurements through MQTT.
 - Telemetry is stored in InfluxDB.
 - Grafana displays methane, temperature, risk level, and airflow.
-- The simulator runs in a Docker container.
+- The simulator and interactive mine map run in Docker containers.
+- The local map's Methane Leak and Ventilation Failure controls were tested successfully.
 - `bash team/smartmine/start.sh` successfully starts the integrated prototype.
 
 Not implemented:
 - A trained machine-learning prediction model
 - Physical mine sensor integration
 - Interactive 3D mine visualization
-- Manual scenario controls on the Stand
+- A verified deployment of the map controls within the hosted OpenEgiz Stand interface
 - Real-world safety validation
 
 ## Data and Assumptions
@@ -125,7 +131,9 @@ Dashboard definition: `team/smartmine/dashboard.json`
 
 Installation script: `team/smartmine/setup_dashboard.py`
 
-The visualization is a monitoring dashboard rather than a 3D mine map.
+An additional interactive 2D mine schematic is available at http://localhost:8082.
+
+It shows three illustrative mine zones, ventilation symbols, live sensor values, and What-if scenario controls. All zones currently share the same overall risk level; they are not independently instrumented.
 
 ## Limitations
 
