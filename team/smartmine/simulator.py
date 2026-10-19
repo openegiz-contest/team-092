@@ -2,6 +2,7 @@ import json
 import random
 import time
 import argparse
+import os
 
 import paho.mqtt.client as mqtt
 
@@ -52,7 +53,7 @@ def main():
             mqtt.CallbackAPIVersion.VERSION2,
             client_id="smartmine-ai-simulator"
         )
-        client.connect("localhost", 1883)
+        client.connect(os.getenv("MQTT_HOST", "localhost"), int(os.getenv("MQTT_PORT", "1883")))
         client.loop_start()
 
     step = 0
