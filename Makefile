@@ -13,6 +13,7 @@ COMPOSE := $(COMPOSE_BASE)$(if $(wildcard $(MINE_MARKER)), -f $(MINE_COMPOSE))
 
 ## Start the whole platform with Docker Compose (first run: generates credentials)
 up:
+	@bash team/smartmine/prepare_extended_api.sh
 	@bash scripts/compose-env.sh
 	@bash scripts/compose-preflight.sh
 	$(COMPOSE) up -d --build --wait --wait-timeout 900

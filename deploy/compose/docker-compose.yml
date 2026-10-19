@@ -267,7 +267,7 @@ services:
   # (same commit and Dockerfile as rebuild/extended-api/).
   extended-api:
     build:
-      context: https://github.com/ertis-research/extended-api-for-eclipse-ditto.git#b49663dea326854a2323423eaeab7e7f54d325a7
+      context: ../../team/extended-api
       dockerfile_inline: |
         FROM node:20-slim
         WORKDIR /usr/src/app

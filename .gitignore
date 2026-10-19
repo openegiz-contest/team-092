@@ -29,3 +29,4 @@ build/WebGL Build.framework.js
 build/WebGL Build.data
 build/WebGL Build.wasm
 team/smartmine/.venv/
+team/extended-api/

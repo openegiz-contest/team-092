@@ -1,43 +1,117 @@
-# <Team name>: a digital mine on OpenEgiz
 
-> Team Repository of the contest “Digital Mine on OpenEgiz”. **Replace the contents of this file with the instructions for your Submission.** The AI Jury runs the Submission strictly by these instructions, from scratch, in the Judge Environment. Accepted languages: English, Kazakh, Russian.
+# SmartMine AI — Underground Mine Digital Twin
 
-> **Start with the Concept**, the first section of [SUBMISSION.md](SUBMISSION.md): the Team writes it before any code. What AI agents build from this Template without a Concept is the Default Solution, published on the [contest site](https://openegiz-contest.github.io/) as the low bar: a Submission that does not go beyond it gets low levels in the Rubric. AI agents read [AGENTS.md](AGENTS.md).
+SmartMine AI is a real-time digital twin prototype for monitoring safety conditions in an underground copper mine.
 
-## Running
+Built for the OpenEgiz Digital Mine contest.
 
-Requirements (Docker, `make`, Windows/WSL2 setup) are in [OPENEGIZ.md](OPENEGIZ.md) / [OPENEGIZ.ru.md](OPENEGIZ.ru.md).
+## Project Overview
+
+SmartMine AI simulates underground mine conditions and visualizes them using a digital twin and a real-time dashboard.
+
+The prototype monitors:
+- Temperature (°C)
+- Methane concentration (%)
+- Humidity (%)
+- Ventilation status and airflow
+- Underground worker count
+- Safety risk level (LOW, MEDIUM, HIGH)
+
+The current prototype uses simulated sensor data and explainable rule-based risk detection. It does not use a trained machine-learning model.
+
+## Technologies
+
+- Python — sensor simulation and safety rules
+- MQTT / Mosquitto — telemetry messaging
+- Eclipse Ditto — digital twin
+- InfluxDB — time-series data storage
+- Grafana — real-time monitoring dashboard
+- Docker Compose — deployment
+- OpenEgiz — digital twin platform
+
+## Requirements
+
+- Docker Desktop with Docker Compose
+- Git
+- Python 3
+- GNU Make
+- Bash
+- Internet connection for the initial build
+
+## Quick Start
+
+Clone the repository:
 
 ```bash
-sudo apt install -y make   # if make is missing (clean Ubuntu)
-make up            # the OpenEgiz platform
-make example-mine  # the Example Mine: twins, simulator, dashboard
+git clone https://github.com/openegiz-contest/team-092.git
+cd team-092
 ```
 
-Replace these commands with the commands of your Submission. The Submission must start by following these instructions without manual intervention (Rules, clause 6.4); downloading datasets and models and building are also listed here.
+Start the platform, create the digital twin, install the dashboard, and launch the simulator:
 
-## What to open
+```bash
+bash team/smartmine/start.sh
+```
 
-- Grafana: the address and login are printed by `make up`.
-- <where to see the mine visualization, which dashboards>
+The initial build may take several minutes.
 
-## Repository contents
+## Dashboard
 
-| Path | Contents |
+Open Grafana:
+
+http://localhost:3000
+
+The dashboard is titled:
+
+**SmartMine AI | Underground Mine Safety**
+
+Grafana credentials are generated in:
+
+`deploy/compose/.env`
+
+Do not commit this file or share its secrets.
+
+## How It Works
+
+1. The Python simulator generates synthetic mine sensor measurements.
+2. Measurements are published through MQTT.
+3. The OpenEgiz platform processes the telemetry.
+4. Eclipse Ditto represents the mine as a digital twin.
+5. InfluxDB stores time-series measurements.
+6. Grafana displays mine conditions and safety indicators.
+
+## Safety Logic
+
+The prototype classifies safety risk based on methane concentration and temperature.
+
+| Risk | Conditions |
 |---|---|
-| `team/` | Directory for the Team's code. Using it is optional: any part may be changed, including the platform core |
-| `SUBMISSION.md` | Description of the Submission: **required** |
-| `presentation.pdf` | Presentation: **required**, in the repository root |
-| `AGENTS.md`, `CLAUDE.md` | Instructions for your AI agents (Codex, Claude Code and others read them automatically) |
-| `examples/mine/` | The Example Mine: shows how a digital mine is built on OpenEgiz. It is not a basis for the Submission |
-| `OPENEGIZ.md`, `OPENEGIZ.ru.md` | Documentation of the OpenEgiz platform v1.0.4 |
+| HIGH | Methane ≥ 1.0% or temperature ≥ 30°C |
+| MEDIUM | Methane ≥ 0.5% or temperature ≥ 27°C |
+| LOW | Otherwise |
 
-The Submission is the `main` branch at the moment of the Freeze; other branches are not evaluated.
+The ventilation simulator increases airflow when conditions become unsafe.
+
+These thresholds are demonstration rules only and must not be used for real mine safety decisions.
+
+## Project Files
+
+| File | Purpose |
+|---|---|
+| `team/smartmine/simulator.py` | Sensor simulation and risk detection |
+| `team/smartmine/twins.json` | Digital twin definition |
+| `team/smartmine/setup_twins.py` | Digital twin initialization |
+| `team/smartmine/dashboard.json` | Grafana dashboard |
+| `team/smartmine/setup_dashboard.py` | Dashboard installation |
+| `team/smartmine/compose.yml` | Simulator container |
+| `team/smartmine/start.sh` | Automated startup |
+| `presentation.pdf` | Contest presentation |
+
+## Limitations
+
+SmartMine AI is a proof-of-concept prototype. All sensor data is synthetic. The risk detection logic is rule-based, not predictive machine learning. The system has not been validated for real-world mining operations.
 
 ## License
 
-The Submission is distributed under the MIT license, see [LICENSE](LICENSE). Copyright belongs to the Team: add the line `Copyright (c) 2026 <Team members>` to `LICENSE`.
+See the repository's LICENSE file.
 
----
-
-Platform: [aleka07/openegiz](https://github.com/aleka07/openegiz). If the platform was useful to you, support the project with a star on GitHub.
