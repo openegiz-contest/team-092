@@ -1,0 +1,109 @@
+import json
+import random
+import time
+import argparse
+
+import paho.mqtt.client as mqtt
+
+THING_ID = "smartmine.ai:copper-mine-01"
+MQTT_TOPIC = "telemetry/copper-mine-01"
+
+
+def create_message(temperature, methane, humidity, airflow, fan_status, risk):
+    features = {
+        "environment": {
+            "properties": {
+                "temperature_c": temperature,
+                "methane_percent": methane,
+                "humidity_percent": humidity
+            }
+        },
+        "ventilation": {
+            "properties": {
+                "fan_status": fan_status,
+                "airflow_m3_s": airflow
+            }
+        },
+        "safety": {
+            "properties": {
+                "risk_level": risk,
+                "workers_underground": 12
+            }
+        }
+    }
+
+    return {
+        "topic": "smartmine.ai/copper-mine-01/things/twin/commands/modify",
+        "path": "/features",
+        "value": features
+    }
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--steps", type=int, default=0)
+    parser.add_argument("--dry-run", action="store_true")
+    args = parser.parse_args()
+
+    client = None
+
+    if not args.dry_run:
+        client = mqtt.Client(
+            mqtt.CallbackAPIVersion.VERSION2,
+            client_id="smartmine-ai-simulator"
+        )
+        client.connect("localhost", 1883)
+        client.loop_start()
+
+    step = 0
+
+    try:
+        while args.steps == 0 or step < args.steps:
+            temperature = round(random.uniform(22, 34), 1)
+            methane = round(random.uniform(0.1, 1.8), 2)
+            humidity = round(random.uniform(45, 75), 1)
+
+            if methane >= 1.0 or temperature >= 30:
+                risk = "HIGH"
+                fan_status = "BOOST"
+                airflow = 30
+            elif methane >= 0.5 or temperature >= 27:
+                risk = "MEDIUM"
+                fan_status = "ON"
+                airflow = 22
+            else:
+                risk = "LOW"
+                fan_status = "ON"
+                airflow = 18
+
+            message = create_message(
+                temperature, methane, humidity,
+                airflow, fan_status, risk
+            )
+
+            if args.dry_run:
+                print(json.dumps(message, indent=2))
+            else:
+                client.publish(MQTT_TOPIC, json.dumps(message))
+                print(
+                    f"Temperature: {temperature} C | "
+                    f"Methane: {methane}% | "
+                    f"Risk: {risk} | Fan: {fan_status}",
+                    flush=True
+                )
+
+            step += 1
+            if args.steps == 0 or step < args.steps:
+                time.sleep(2)
+
+    except KeyboardInterrupt:
+        print("\nSimulator stopped.")
+
+    finally:
+        if client:
+            client.loop_stop()
+            client.disconnect()
+
+
+if __name__ == "__main__":
+    main()
