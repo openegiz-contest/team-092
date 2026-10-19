@@ -1,0 +1,34 @@
+{
+  "smartmine.ai:copper-mine-01": {
+    "policyId": "default:basic_policy",
+    "attributes": {
+      "name": "SmartMine AI - Copper Mine 01",
+      "mine_type": "Underground Copper Mine",
+      "location": "Kazakhstan (Fictional)",
+      "depth_m": 450,
+      "zones": 3,
+      "_parents": null
+    },
+    "features": {
+      "environment": {
+        "properties": {
+          "temperature_c": 24.0,
+          "methane_percent": 0.37,
+          "humidity_percent": 55.0
+        }
+      },
+      "ventilation": {
+        "properties": {
+          "fan_status": "ON",
+          "airflow_m3_s": 12.0
+        }
+      },
+      "safety": {
+        "properties": {
+          "risk_level": "LOW",
+          "workers_underground": 18
+        }
+      }
+    }
+  }
+}
