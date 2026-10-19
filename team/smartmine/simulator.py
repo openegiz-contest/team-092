@@ -8,7 +8,19 @@ import paho.mqtt.client as mqtt
 
 THING_ID = "smartmine.ai:copper-mine-01"
 MQTT_TOPIC = "telemetry/copper-mine-01"
+CONTROL_TOPIC = "smartmine/control/scenario"
 
+current_scenario = "NORMAL"
+
+
+def on_control_message(client, userdata, message):
+    global current_scenario
+
+    scenario = message.payload.decode("utf-8").strip().upper()
+
+    if scenario in ("NORMAL", "METHANE_LEAK", "VENTILATION_FAILURE"):
+        current_scenario = scenario
+        print(f"Scenario changed to: {scenario}", flush=True)
 
 def create_message(temperature, methane, humidity, airflow, fan_status, risk):
     features = {
@@ -55,16 +67,32 @@ def main():
         )
         client.connect(os.getenv("MQTT_HOST", "localhost"), int(os.getenv("MQTT_PORT", "1883")))
         client.loop_start()
-
+        client.message_callback_add(CONTROL_TOPIC, on_control_message)
+        client.subscribe(CONTROL_TOPIC)
     step = 0
 
     try:
         while args.steps == 0 or step < args.steps:
-            temperature = round(random.uniform(22, 34), 1)
-            methane = round(random.uniform(0.1, 1.8), 2)
-            humidity = round(random.uniform(45, 75), 1)
+            if current_scenario == "METHANE_LEAK":
+                temperature = round(random.uniform(28, 32), 1)
+                methane = round(random.uniform(1.5, 1.8), 2)
+                humidity = round(random.uniform(45, 75), 1)
 
-            if methane >= 1.0 or temperature >= 30:
+            elif current_scenario == "VENTILATION_FAILURE":
+                temperature = round(random.uniform(30, 35), 1)
+                methane = round(random.uniform(1.3, 1.8), 2)
+                humidity = round(random.uniform(60, 80), 1)
+
+            else:
+                temperature = round(random.uniform(22, 34), 1)
+                methane = round(random.uniform(0.1, 1.8), 2)
+                humidity = round(random.uniform(45, 75), 1)
+
+            if current_scenario == "VENTILATION_FAILURE":
+                risk = "HIGH"
+                fan_status = "OFF"
+                airflow = 0
+            elif methane >= 1.0 or temperature >= 30:
                 risk = "HIGH"
                 fan_status = "BOOST"
                 airflow = 30

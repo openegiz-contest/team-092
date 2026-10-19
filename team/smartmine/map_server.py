@@ -72,6 +72,24 @@ footer{color:#91a3ba;font-size:12px;margin-top:16px}
 <div class="card"><div class="label">Safety risk</div><div class="value"><span id="risk" class="status low">LOW</span></div></div>
 </div>
 <div class="panel">
+  <h2>What-if Simulation</h2>
+  <p>Select an emergency scenario:</p>
+
+  <button onclick="setScenario('NORMAL')">
+    🟢 Normal Mode
+  </button>
+
+  <button onclick="setScenario('METHANE_LEAK')">
+    🔴 Methane Leak
+  </button>
+
+  <button onclick="setScenario('VENTILATION_FAILURE')">
+    ⚠️ Ventilation Failure
+  </button>
+
+  <p id="scenario-status">Select a scenario</p>
+</div>
+<div class="panel">
 <h2>Mine layout · illustrative schematic</h2>
 <svg viewBox="0 0 900 430" role="img" aria-label="Schematic underground mine map">
 <path class="tunnel" d="M70 215 H830 M180 215 V105 H365 V215 M365 215 V335 H570 V215 M650 215 V105 H790 V215"/>
@@ -113,6 +131,28 @@ footer{color:#91a3ba;font-size:12px;margin-top:16px}
 </div>
 </main>
 <script>
+async function setScenario(scenario) {
+  const status = document.getElementById('scenario-status');
+  status.textContent = 'Switching to ' + scenario + '...';
+
+  try {
+    const response = await fetch('/api/scenario', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ scenario: scenario })
+    });
+
+    if (!response.ok) {
+      throw new Error('Server error');
+    }
+
+    status.textContent = 'Selected: ' + scenario;
+  } catch (error) {
+    status.textContent = 'Error: scenario could not be changed';
+  }
+}
 async function update(){
  try{
   const response=await fetch('/api/state',{cache:'no-store'});
@@ -144,6 +184,45 @@ setInterval(update,2000);
 
 
 class Handler(BaseHTTPRequestHandler):
+    def do_POST(self):
+        if self.path != "/api/scenario":
+            self.send_error(404)
+            return
+
+        if self.headers.get("Content-Type", "").split(";")[0].strip() != "application/json":
+            self.send_error(415, "JSON required")
+            return
+
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            if length <= 0 or length > 1024:
+                self.send_error(400, "Invalid request size")
+                return
+
+            data = json.loads(self.rfile.read(length))
+            scenario = data.get("scenario")
+
+            if scenario not in ("NORMAL", "METHANE_LEAK", "VENTILATION_FAILURE"):
+                self.send_error(400, "Invalid scenario")
+                return
+
+            result = self.server.mqtt_client.publish(
+                "smartmine/control/scenario", scenario, qos=1
+            )
+
+            if result.rc != mqtt.MQTT_ERR_SUCCESS:
+                self.send_error(503, "MQTT unavailable")
+                return
+
+            body = json.dumps({"scenario": scenario}).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        except (ValueError, TypeError, AttributeError, json.JSONDecodeError):
+            self.send_error(400, "Invalid request")
     def do_GET(self):
         if self.path == "/api/state":
             with lock:
@@ -209,6 +288,7 @@ def main():
     client.loop_start()
 
     server = ThreadingHTTPServer(("0.0.0.0", 8080), Handler)
+    server.mqtt_client = client
     print("Mine map available on port 8080")
     try:
         server.serve_forever()
