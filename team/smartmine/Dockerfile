@@ -6,5 +6,5 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY simulator.py .
-
+COPY map_server.py .
 CMD ["python", "-u", "simulator.py"]
