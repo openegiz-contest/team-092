@@ -115,3 +115,26 @@ SmartMine AI is a proof-of-concept prototype. All sensor data is synthetic. The 
 
 See the repository's LICENSE file.
 
+
+## Interactive Mine Map and What-if Simulation
+
+SmartMine AI includes a live underground mine map available at:
+
+http://localhost:8082
+
+The map displays temperature, methane concentration, airflow,
+ventilation status, and safety risk using MQTT telemetry.
+
+### What-if scenarios
+
+- Normal Mode: simulates normal mine operation.
+- Methane Leak: simulates elevated methane concentration.
+- Ventilation Failure: simulates fan shutdown and zero airflow.
+
+Scenario buttons send commands through MQTT to the simulator.
+Updated telemetry is reflected on the map and can be monitored
+through Eclipse Ditto and Grafana.
+
+This is an educational simulation, not a certified mine safety system.
+The mine layout is illustrative, and all displayed zones currently
+share the same overall risk level.
